@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
+
+type Note struct {
+	UserID  string `json:"UserId"`
+	Content string `json:"Content"`
+}
 
 func main() {
 	CHANNEL_SECRET := os.Getenv("CHANNEL_SECRET")
@@ -37,6 +44,32 @@ func main() {
 			if event.Type == linebot.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
+
+					// Get existing notes
+					if strings.Contains(message.Text, "★履歴★") {
+						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID)
+						if err != nil {
+							log.Fatal(err)
+						}
+						defer resp.Body.Close()
+
+						body, err := io.ReadAll(resp.Body)
+
+						var notes []Note
+
+						if err := json.Unmarshal(body, &notes); err != nil {
+							log.Fatal(err)
+						}
+
+						var replyText string
+						for _, note := range notes {
+							replyText += note.Content + "\n"
+						}
+
+						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyText)).Do(); err != nil {
+							log.Fatal(err)
+						}
+					}
 
 					// Post text to note api
 					note := map[string]string{"userId": event.Source.UserID, "content": message.Text}
