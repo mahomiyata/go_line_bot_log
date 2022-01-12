@@ -103,11 +103,14 @@ func main() {
 						defer resp.Body.Close()
 						fmt.Println(resp.Body)
 
-						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Created!"), linebot.NewStickerMessage("789", "10863")).Do(); err != nil {
+						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewStickerMessage("789", "10863")).Do(); err != nil {
 							log.Print(err)
 						}
 					}
-
+				case *linebot.StickerMessage:
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewStickerMessage(message.PackageID, message.StickerID)).Do(); err != nil {
+						log.Print(err)
+					}
 				}
 			}
 		}
