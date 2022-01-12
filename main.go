@@ -62,8 +62,12 @@ func main() {
 						}
 
 						var replyText string
-						for _, note := range notes {
-							replyText += note.Content + "\n"
+						for i, note := range notes {
+							if i == 0 {
+								replyText += note.Content
+							} else {
+								replyText += "\n" + note.Content
+							}
 						}
 
 						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyText)).Do(); err != nil {
@@ -84,7 +88,7 @@ func main() {
 						defer resp.Body.Close()
 						fmt.Println(resp.Body)
 
-						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Created!")).Do(); err != nil {
+						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Created!"), linebot.NewStickerMessage("789", "10863")).Do(); err != nil {
 							log.Print(err)
 						}
 					}
