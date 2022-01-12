@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +14,8 @@ import (
 func main() {
 	CHANNEL_SECRET := os.Getenv("CHANNEL_SECRET")
 	CHANNEL_TOKEN := os.Getenv("CHANNEL_TOKEN")
+
+	API_base_URL := "http://ec2-3-23-60-80.us-east-2.compute.amazonaws.com/notes"
 
 	bot, err := linebot.New(CHANNEL_SECRET, CHANNEL_TOKEN)
 
@@ -32,7 +37,22 @@ func main() {
 			if event.Type == linebot.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
-					if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(event.Source.UserID), linebot.NewTextMessage(message.Text)).Do(); err != nil {
+
+					// Post text to note api
+					note := map[string]string{"userId": event.Source.UserID, "content": message.Text}
+					json_data, err := json.Marshal(note)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					resp, err := http.Post(API_base_URL, "application/json", bytes.NewBuffer(json_data))
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer resp.Body.Close()
+					fmt.Println(resp.Body)
+
+					if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(event.Source.UserID), linebot.NewTextMessage("Created!")).Do(); err != nil {
 						log.Print(err)
 					}
 				}
