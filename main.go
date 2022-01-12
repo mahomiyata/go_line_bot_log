@@ -30,6 +30,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// choice := linebot.NewTextMessage("利用規約に同意する場合は「Y」を、そうでない場合は「N」を送信してください。").WithQuickReplies(
+	// 	linebot.NewQuickReplyItems(
+	// 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("Y: 同意します", "Y")),
+	// 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("N: 同意しません", "N")),
+	// 	))
+
+	feelingLog := linebot.NewTextMessage("今日はどうでしたか？").WithQuickReplies(
+		linebot.NewQuickReplyItems(
+			linebot.NewQuickReplyButton("", linebot.NewMessageAction("良い感じ🐥", "良い感じ🐥")),
+			linebot.NewQuickReplyButton("", linebot.NewMessageAction("まあまあ🐣", "まあまあ🐣")),
+			linebot.NewQuickReplyButton("", linebot.NewMessageAction("だめかな……🐤", "だめかな……🐤")),
+		))
+	if _, err := bot.BroadcastMessage(feelingLog).Do(); err != nil {
+		log.Fatal()
+	}
+
 	// Set up HTTP server for webhook
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		events, err := bot.ParseRequest(r)
@@ -44,7 +60,6 @@ func main() {
 			if event.Type == linebot.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
-
 					// Get existing notes
 					if strings.Contains(message.Text, "★履歴★") {
 						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID)
