@@ -69,25 +69,26 @@ func main() {
 						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyText)).Do(); err != nil {
 							log.Fatal(err)
 						}
+					} else {
+						// Post text to note api
+						note := map[string]string{"userId": event.Source.UserID, "content": message.Text}
+						json_data, err := json.Marshal(note)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						resp, err := http.Post(API_base_URL, "application/json", bytes.NewBuffer(json_data))
+						if err != nil {
+							log.Fatal(err)
+						}
+						defer resp.Body.Close()
+						fmt.Println(resp.Body)
+
+						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Created!")).Do(); err != nil {
+							log.Print(err)
+						}
 					}
 
-					// Post text to note api
-					note := map[string]string{"userId": event.Source.UserID, "content": message.Text}
-					json_data, err := json.Marshal(note)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					resp, err := http.Post(API_base_URL, "application/json", bytes.NewBuffer(json_data))
-					if err != nil {
-						log.Fatal(err)
-					}
-					defer resp.Body.Close()
-					fmt.Println(resp.Body)
-
-					if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(event.Source.UserID), linebot.NewTextMessage("Created!")).Do(); err != nil {
-						log.Print(err)
-					}
 				}
 			}
 		}
