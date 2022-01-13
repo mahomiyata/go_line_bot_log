@@ -97,7 +97,7 @@ func main() {
 
 						reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 							linebot.NewQuickReplyItems(
-								linebot.NewQuickReplyButton("", linebot.NewMessageAction("more 2", "もっと見る")),
+								linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "more 2")),
 							))
 
 						if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
@@ -154,7 +154,7 @@ func main() {
 
 							reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 								linebot.NewQuickReplyItems(
-									linebot.NewQuickReplyButton("", linebot.NewMessageAction("more "+strconv.Itoa(next), "もっと見る")),
+									linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "more "+strconv.Itoa(next))),
 								))
 
 							if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
