@@ -150,7 +150,7 @@ func main() {
 							if err != nil {
 								log.Fatal(err)
 							}
-							next = +1
+							next += 1
 
 							reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 								linebot.NewQuickReplyItems(
