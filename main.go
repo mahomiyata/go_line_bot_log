@@ -79,12 +79,16 @@ func main() {
 							if err != nil {
 								log.Fatal(err)
 							}
+
+							loc := time.FixedZone("Asia/Tokyo", 9*60*60)
+							t = t.In(loc)
+
 							if i == 0 {
 								replyText += "🗓 " + t.Format("2006/01/02 15:04")
-								replyText += "👉🏻 " + note.Content
+								replyText += "\n👉🏻 " + note.Content
 							} else {
 								replyText += "\n\n🗓 " + t.Format("2006/01/02 15:04")
-								replyText += "👉🏻 " + note.Content
+								replyText += "\n👉🏻 " + note.Content
 							}
 						}
 
