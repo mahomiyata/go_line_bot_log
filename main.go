@@ -97,13 +97,13 @@ func main() {
 
 						reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 							linebot.NewQuickReplyItems(
-								linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "more 2")),
+								linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "もっと見る😉 2")),
 							))
 
 						if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
 							log.Fatal(err)
 						}
-					} else if strings.Contains(message.Text, "more") {
+					} else if strings.Contains(message.Text, "もっと見る😉") {
 						splitStr := strings.Split(message.Text, " ")
 
 						// FIXME: Please change this to DRY code...
@@ -154,7 +154,7 @@ func main() {
 
 							reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 								linebot.NewQuickReplyItems(
-									linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "more "+strconv.Itoa(next))),
+									linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る😉", "もっと見る😉 "+strconv.Itoa(next))),
 								))
 
 							if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
