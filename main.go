@@ -58,7 +58,7 @@ func main() {
 						var notes []Note = GetNotes(event, "1")
 						var replyText string = CreateReplyText(notes)
 
-						ReplyMessage := CreateReplyWithMoreNotes(replyText, "1")
+						ReplyMessage := CreateReplyWithMoreNotes(replyText, "2")
 						if _, err := bot.ReplyMessage(event.ReplyToken, ReplyMessage).Do(); err != nil {
 							log.Fatal(err)
 						}
