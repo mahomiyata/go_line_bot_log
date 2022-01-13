@@ -25,8 +25,6 @@ func main() {
 	CHANNEL_SECRET := os.Getenv("CHANNEL_SECRET")
 	CHANNEL_TOKEN := os.Getenv("CHANNEL_TOKEN")
 
-	API_base_URL := "http://ec2-3-23-60-80.us-east-2.compute.amazonaws.com/notes"
-
 	bot, err := linebot.New(CHANNEL_SECRET, CHANNEL_TOKEN)
 
 	if err != nil {
@@ -61,39 +59,11 @@ func main() {
 					if strings.Contains(message.Text, "★履歴★") {
 
 						// FIXME: Please change this to DRY code...
-						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID + "/1")
-						if err != nil {
-							log.Fatal(err)
-						}
-						defer resp.Body.Close()
-
-						body, err := io.ReadAll(resp.Body)
-
 						var notes []Note
-
-						if err := json.Unmarshal(body, &notes); err != nil {
-							log.Fatal(err)
-						}
+						notes = GetNotes(event, "1")
 
 						var replyText string
-
-						for i, note := range notes {
-							t, err := time.Parse(time.RFC3339, note.CreatedAt)
-							if err != nil {
-								log.Fatal(err)
-							}
-
-							loc := time.FixedZone("Asia/Tokyo", 9*60*60)
-							t = t.In(loc)
-
-							if i == 0 {
-								replyText += "🗓 " + t.Format("2006/01/02 15:04")
-								replyText += "\n👉🏻 " + note.Content
-							} else {
-								replyText += "\n\n🗓 " + t.Format("2006/01/02 15:04")
-								replyText += "\n👉🏻 " + note.Content
-							}
-						}
+						replyText = CreateReplyText(notes)
 
 						reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 							linebot.NewQuickReplyItems(
@@ -154,7 +124,7 @@ func main() {
 
 							reply := linebot.NewTextMessage(replyText).WithQuickReplies(
 								linebot.NewQuickReplyItems(
-									linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る😉", "もっと見る😉 "+strconv.Itoa(next))),
+									linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "もっと見る😉 "+strconv.Itoa(next))),
 								))
 
 							if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
