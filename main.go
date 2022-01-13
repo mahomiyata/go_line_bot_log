@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -58,7 +59,9 @@ func main() {
 				case *linebot.TextMessage:
 					// Get existing notes
 					if strings.Contains(message.Text, "★履歴★") {
-						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID)
+
+						// FIXME: Please change this to DRY code...
+						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID + "/1")
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -92,9 +95,73 @@ func main() {
 							}
 						}
 
-						if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyText)).Do(); err != nil {
+						reply := linebot.NewTextMessage(replyText).WithQuickReplies(
+							linebot.NewQuickReplyItems(
+								linebot.NewQuickReplyButton("", linebot.NewMessageAction("more 2", "もっと見る")),
+							))
+
+						if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
 							log.Fatal(err)
 						}
+					} else if strings.Contains(message.Text, "more") {
+						splitStr := strings.Split(message.Text, " ")
+
+						// FIXME: Please change this to DRY code...
+						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID + "/" + splitStr[1])
+						if err != nil {
+							log.Fatal(err)
+						}
+						defer resp.Body.Close()
+
+						body, err := io.ReadAll(resp.Body)
+
+						var notes []Note
+
+						if err := json.Unmarshal(body, &notes); err != nil {
+							log.Fatal(err)
+						}
+
+						if len(notes) == 0 {
+							if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("もう無いみたい🐬")).Do(); err != nil {
+								log.Print(err)
+							}
+						} else {
+							var replyText string
+
+							for i, note := range notes {
+								t, err := time.Parse(time.RFC3339, note.CreatedAt)
+								if err != nil {
+									log.Fatal(err)
+								}
+
+								loc := time.FixedZone("Asia/Tokyo", 9*60*60)
+								t = t.In(loc)
+
+								if i == 0 {
+									replyText += "🗓 " + t.Format("2006/01/02 15:04")
+									replyText += "\n👉🏻 " + note.Content
+								} else {
+									replyText += "\n\n🗓 " + t.Format("2006/01/02 15:04")
+									replyText += "\n👉🏻 " + note.Content
+								}
+							}
+
+							next, err := strconv.Atoi(splitStr[1])
+							if err != nil {
+								log.Fatal(err)
+							}
+							next = +1
+
+							reply := linebot.NewTextMessage(replyText).WithQuickReplies(
+								linebot.NewQuickReplyItems(
+									linebot.NewQuickReplyButton("", linebot.NewMessageAction("more "+strconv.Itoa(next), "もっと見る")),
+								))
+
+							if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
+								log.Fatal(err)
+							}
+						}
+
 					} else {
 						// Post text to note api
 						note := map[string]string{"userId": event.Source.UserID, "content": message.Text}
