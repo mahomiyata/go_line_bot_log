@@ -9,13 +9,15 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 type Note struct {
-	UserID  string `json:"UserId"`
-	Content string `json:"Content"`
+	UserID    string `json:"UserId"`
+	Content   string `json:"Content"`
+	CreatedAt string `json:"CreatedAt"`
 }
 
 func main() {
@@ -30,13 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// choice := linebot.NewTextMessage("利用規約に同意する場合は「Y」を、そうでない場合は「N」を送信してください。").WithQuickReplies(
-	// 	linebot.NewQuickReplyItems(
-	// 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("Y: 同意します", "Y")),
-	// 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("N: 同意しません", "N")),
-	// 	))
-
-	feelingLog := linebot.NewTextMessage("今日はどうでしたか？").WithQuickReplies(
+	feelingLog := linebot.NewTextMessage("今はどんな感じ？").WithQuickReplies(
 		linebot.NewQuickReplyItems(
 			linebot.NewQuickReplyButton("", linebot.NewMessageAction("良い感じ🐥", "良い感じ🐥")),
 			linebot.NewQuickReplyButton("", linebot.NewMessageAction("まあまあ🐣", "まあまあ🐣")),
@@ -77,11 +73,18 @@ func main() {
 						}
 
 						var replyText string
+
 						for i, note := range notes {
+							t, err := time.Parse(time.RFC3339, note.CreatedAt)
+							if err != nil {
+								log.Fatal(err)
+							}
 							if i == 0 {
-								replyText += note.Content
+								replyText += "🗓 " + t.Format("2006/01/02 15:04")
+								replyText += "👉🏻 " + note.Content
 							} else {
-								replyText += "\n" + note.Content
+								replyText += "\n\n🗓 " + t.Format("2006/01/02 15:04")
+								replyText += "👉🏻 " + note.Content
 							}
 						}
 
@@ -108,7 +111,7 @@ func main() {
 						}
 					}
 				case *linebot.StickerMessage:
-					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewStickerMessage(message.PackageID, message.StickerID)).Do(); err != nil {
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewStickerMessage("789", "10877")).Do(); err != nil {
 						log.Print(err)
 					}
 				}
