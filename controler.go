@@ -51,3 +51,10 @@ func CreateReplyText(notes []Note) string {
 	}
 	return replyText
 }
+
+func CreateReplyWithMoreNotes(replyText string, pager string) linebot.SendingMessage {
+	return linebot.NewTextMessage(replyText).WithQuickReplies(
+		linebot.NewQuickReplyItems(
+			linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "もっと見る😉 "+pager)),
+		))
+}

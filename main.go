@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -55,66 +53,29 @@ func main() {
 			if event.Type == linebot.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
-					// Get existing notes
+					// Reply 5 latest notes
 					if strings.Contains(message.Text, "★履歴★") {
+						var notes []Note = GetNotes(event, "1")
+						var replyText string = CreateReplyText(notes)
 
-						// FIXME: Please change this to DRY code...
-						var notes []Note
-						notes = GetNotes(event, "1")
-
-						var replyText string
-						replyText = CreateReplyText(notes)
-
-						reply := linebot.NewTextMessage(replyText).WithQuickReplies(
-							linebot.NewQuickReplyItems(
-								linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "もっと見る😉 2")),
-							))
-
-						if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
+						ReplyMessage := CreateReplyWithMoreNotes(replyText, "1")
+						if _, err := bot.ReplyMessage(event.ReplyToken, ReplyMessage).Do(); err != nil {
 							log.Fatal(err)
 						}
+
+						// Reply more notes
 					} else if strings.Contains(message.Text, "もっと見る😉") {
 						splitStr := strings.Split(message.Text, " ")
 
-						// FIXME: Please change this to DRY code...
-						resp, err := http.Get(API_base_URL + "/" + event.Source.UserID + "/" + splitStr[1])
-						if err != nil {
-							log.Fatal(err)
-						}
-						defer resp.Body.Close()
+						var notes []Note = GetNotes(event, splitStr[1])
 
-						body, err := io.ReadAll(resp.Body)
-
-						var notes []Note
-
-						if err := json.Unmarshal(body, &notes); err != nil {
-							log.Fatal(err)
-						}
-
+						// FIXME: You can use case!
 						if len(notes) == 0 {
 							if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("もう無いみたい🐬")).Do(); err != nil {
 								log.Print(err)
 							}
 						} else {
-							var replyText string
-
-							for i, note := range notes {
-								t, err := time.Parse(time.RFC3339, note.CreatedAt)
-								if err != nil {
-									log.Fatal(err)
-								}
-
-								loc := time.FixedZone("Asia/Tokyo", 9*60*60)
-								t = t.In(loc)
-
-								if i == 0 {
-									replyText += "🗓 " + t.Format("2006/01/02 15:04")
-									replyText += "\n👉🏻 " + note.Content
-								} else {
-									replyText += "\n\n🗓 " + t.Format("2006/01/02 15:04")
-									replyText += "\n👉🏻 " + note.Content
-								}
-							}
+							var replyText string = CreateReplyText(notes)
 
 							next, err := strconv.Atoi(splitStr[1])
 							if err != nil {
@@ -122,12 +83,9 @@ func main() {
 							}
 							next += 1
 
-							reply := linebot.NewTextMessage(replyText).WithQuickReplies(
-								linebot.NewQuickReplyItems(
-									linebot.NewQuickReplyButton("", linebot.NewMessageAction("もっと見る", "もっと見る😉 "+strconv.Itoa(next))),
-								))
+							replyMessage := CreateReplyWithMoreNotes(replyText, strconv.Itoa(next))
 
-							if _, err := bot.ReplyMessage(event.ReplyToken, reply).Do(); err != nil {
+							if _, err := bot.ReplyMessage(event.ReplyToken, replyMessage).Do(); err != nil {
 								log.Fatal(err)
 							}
 						}
