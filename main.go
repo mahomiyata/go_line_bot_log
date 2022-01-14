@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,14 +30,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	feelingLog := linebot.NewTextMessage("今はどんな感じ？").WithQuickReplies(
-		linebot.NewQuickReplyItems(
-			linebot.NewQuickReplyButton("", linebot.NewMessageAction("良い感じ🐥", "良い感じ🐥")),
-			linebot.NewQuickReplyButton("", linebot.NewMessageAction("まあまあ🐣", "まあまあ🐣")),
-			linebot.NewQuickReplyButton("", linebot.NewMessageAction("だめかな……🐤", "だめかな……🐤")),
-		))
-	if _, err := bot.BroadcastMessage(feelingLog).Do(); err != nil {
-		log.Fatal()
+	isExecutedTime := flag.Bool("broadcast", false, "a bool for checking broadcast")
+	flag.Parse()
+
+	if *isExecutedTime {
+		feelingLog := linebot.NewTextMessage("今はどんな感じ？").WithQuickReplies(
+			linebot.NewQuickReplyItems(
+				linebot.NewQuickReplyButton("", linebot.NewMessageAction("良い感じ🐥", "良い感じ🐥")),
+				linebot.NewQuickReplyButton("", linebot.NewMessageAction("まあまあ🐣", "まあまあ🐣")),
+				linebot.NewQuickReplyButton("", linebot.NewMessageAction("だめかな……🐤", "だめかな……🐤")),
+			))
+		if _, err := bot.BroadcastMessage(feelingLog).Do(); err != nil {
+			log.Fatal()
+		}
 	}
 
 	// Set up HTTP server for webhook
