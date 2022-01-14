@@ -34,7 +34,7 @@ func main() {
 	flag.Parse()
 
 	if *isExecutedTime {
-		feelingLog := linebot.NewTextMessage("今はどんな感じ？").WithQuickReplies(
+		feelingLog := linebot.NewTextMessage("今日はどんな感じ？").WithQuickReplies(
 			linebot.NewQuickReplyItems(
 				linebot.NewQuickReplyButton("", linebot.NewMessageAction("良い感じ🐥", "良い感じ🐥")),
 				linebot.NewQuickReplyButton("", linebot.NewMessageAction("まあまあ🐣", "まあまあ🐣")),
