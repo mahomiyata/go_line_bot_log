@@ -2,9 +2,6 @@
 
 簡単に日々を記録できるLine Botです。
 
-Botは下のQRから追加できます。
-![QR.png](images_for_readme/QR.png)
-
 ## 機能
 
 1. 毎日5時に調子を聞いてくれる
